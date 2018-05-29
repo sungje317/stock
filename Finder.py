@@ -18,7 +18,7 @@ def get_url(item_name, code_df):
     return url
 
 # 신라젠의 일자데이터 url 가져오기
-item_name='신라젠'
+item_name='삼성전자'
 url = get_url(item_name, code_df)
 
 # 일자 데이터를 담을 df라는 DataFrame 정의
