@@ -1,5 +1,4 @@
 import pandas as pd
-import requests
 from bs4 import BeautifulSoup
 import requests
 
@@ -22,16 +21,16 @@ print(code_df.head())
 def get_url(item_name, code_df):
     code = code_df.query("name=='{}'".format(item_name))['code'].to_string(index=False)
     url = 'http://finance.naver.com/item/sise_day.nhn?code={code}'.format(code=code)
-    print("요청 URL = {}".format(url))
+    #print("요청 URL = {}".format(url))
     return url
 
 df = pd.DataFrame()
+picked_df = pd.DataFrame(columns=["name","code","low","ins_date","del_date","picked"])
 
 for name in code_df['name']:
 
     item_name=name
     url = get_url(item_name, code_df)
-
     pg_url = '{url}&page={page}'.format(url=url, page=1)
     df = pd.read_html(pg_url, header=0)[0]
 
@@ -47,34 +46,46 @@ for name in code_df['name']:
     # 일자(date)를 기준으로 오름차순 정렬
     df = df.sort_values(by=['date'], ascending=False)
     # 상위 5개 데이터 확인
-    print(df.head())
+    #print(df.head())
+
 
     try:
         Today = df.loc[1,'volume']
         Close = df.loc[1,'close']
         Low = df.loc[1,'low']
         Yesterday = df.loc[2,'volume']
+        Diff = df.loc[1,'diff']
     except:
         continue
 
     if Today > Yesterday*10 :
+        if Diff > 0 :
+            if not name[-2:] == "스팩" :
 
-        code = code_df.query("name=='{}'".format(name))['code'].to_string(index=False)
-        sum_URL = "http://finance.naver.com/item/sise.nhn?code=" + code
+                code = code_df.query("name=='{}'".format(name))['code'].to_string(index=False)
+                sum_URL = "http://finance.naver.com/item/sise.nhn?code=" + code
 
-        html = requests.get(sum_URL).text
+                html = requests.get(sum_URL).text
 
-        soup = BeautifulSoup(html, 'html.parser')
+                soup = BeautifulSoup(html, 'html.parser')
 
-        sum_area = soup.find("table", {"summary": "시가총액 정보"})
-        sum_table = sum_area.find_all("td")
-        sum_element = sum_table[2]
-        Sum = sum_element.find("em").text
-        Sum = Sum.replace(",", "")
-        Sum = Sum[:-5]
-        Result = int(Sum) * int(Close)
-        Result = str(Result)
-        Low = str(Low)
+                sum_area = soup.find("table", {"summary": "시가총액 정보"})
+                sum_table = sum_area.find_all("td")
+                sum_element = sum_table[2]
+                Sum = sum_element.find("em").text
+                Sum = Sum.replace(",", "")
+                Sum = Sum[:-5]
+                Result = int(int(Sum) * int(Close) / 1000)
 
-        text = "text=" + name + "%20" + Low + "%20" + Result
-        requests.get(URL+ID+text)
+                Mul = int(Today / Yesterday)
+                Result = str(Result)
+                Low = str(Low)
+                Mul = str(Mul)
+
+                text = "text=" + name + "%20" + Mul + "배" + "%20" + Low + "%20" + Result + "억원"
+                print(name, Mul, Low, Result)
+                # requests.get(URL+ID+text)
+                picked_df.loc[len(picked_df)] = [name,code,Low,'2018-05-30','0000-00-00',1]
+
+with open('picked.csv','a') as f:
+    picked_df.to_csv(f, header=False, index=False)

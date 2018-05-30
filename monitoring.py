@@ -1,6 +1,6 @@
 import pandas as pd
-import time
 import requests
+from datetime import date
 
 ID = "chat_id=-235881804&"
 URL = "https://api.telegram.org/bot503225439:AAFVv3WnsASUlJ-SHbBjobaO9dArzN9pCbk/sendMessage?"
@@ -16,6 +16,8 @@ def get_url(code):
 
 df = pd.DataFrame()
 
+DATE = date.today()
+TODAY = DATE.strftime("%Y-%m-%d")
 
 code_df = pd.read_html('http://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13&marketType=kosdaqMkt', header=0)[0]
 code_df.종목코드 = code_df.종목코드.map('{:06d}'.format)
@@ -54,5 +56,5 @@ while True :
                 TEXT = "text=" + NAME + "%20" + "저가도달입니다." + "%20" + NOW + "%20" + LOW + "%20" + DIFF
                 requests.get(URL + ID + TEXT)
                 picked_list.loc[i,"picked"] = 0
-
-    time.sleep(5)
+                picked_list.loc[i,"del_date"] = TODAY
+                picked_list.to_csv("picked.csv", encoding='utf-8', index=False)
