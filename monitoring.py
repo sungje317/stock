@@ -1,6 +1,8 @@
 import pandas as pd
 import requests
 from datetime import date
+from datetime import timedelta
+from datetime import datetime
 
 ID = "chat_id=-235881804&"
 URL = "https://api.telegram.org/bot503225439:AAFVv3WnsASUlJ-SHbBjobaO9dArzN9pCbk/sendMessage?"
@@ -24,7 +26,9 @@ code_df.종목코드 = code_df.종목코드.map('{:06d}'.format)
 code_df = code_df[['회사명', '종목코드']]
 code_df = code_df.rename(columns={'회사명': 'name', '종목코드': 'code'})
 
-while True :
+end_time = datetime.now() + timedelta(hours=7)
+
+while datetime.now() < end_time :
 
     for i in range(len(picked_list)) :
         picked = picked_list.loc[i,"picked"]
