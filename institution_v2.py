@@ -101,7 +101,7 @@ for name in code_df['name'] :
         print(name, inst_SUM, SUM, i)
         if i > 19 :
             for i in range(3, 20, 4):
-                if inst[i] / SUM * 100 > (i / 4) + 1 :
+                if inst[i] / SUM * 100 > (i / 5) + 2 :
                     TEXT = "text=" + name + "%20" + str(inst_SUM) + "%20" + str(SUM)
                     results.append(TEXT)
                     for j in range(3, 20, 4):
@@ -111,11 +111,10 @@ for name in code_df['name'] :
 
 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
-#TEXT = "text=" + "20일간 기관 매수세 입니다."
-#requests.get(URL+ID+TEXT)
+TEXT = "text=" + "20일간 기관 매수세 입니다."
+requests.get(URL+ID+TEXT)
 
 for feature in picked_feature :
-    '''
     print(feature)
     fig = plt.figure(facecolor='white')
     ax = fig.add_subplot(1,1,1)
@@ -125,11 +124,11 @@ for feature in picked_feature :
     for i in range(6, 1, -1):
 
         if feature[i] > 0:
-            positive_data.append(int(feature[i] / i * 100))
+            positive_data.append(int(feature[i] / (i + 1) * 100))
             negative_data.append(0)
         else:
             positive_data.append(0)
-            negative_data.append(int(feature[i] / i * 100))
+            negative_data.append(int(feature[i] / (i + 1) * 100))
 
     print(positive_data)
     print(x)
@@ -162,6 +161,6 @@ for feature in picked_feature :
 
     plt.savefig('temp.png')
     FILE = {'photo': ('temp.png', open('temp.png', "rb"))}
-    requests.post(image_URL, data=ID_data, files=FILE) '''
+    requests.post(image_URL, data=ID_data, files=FILE)
 
     print("{} {}억 {}% {}% {}% {}% {}%".format(feature[0], feature[1], feature[2], feature[3], feature[4], feature[5], feature[6]))
