@@ -1,66 +1,17 @@
+import pandas as pd
 from bs4 import BeautifulSoup
 import requests
-from datetime import date
-import matplotlib.font_manager as fm
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-import mpl_finance as mpf
-import matplotlib.gridspec as gridspec
-
-def weekday_barchart(ohlc_data, ax, fmt='%b %d', freq=7, **kwargs):
-
-    # Convert data to numpy array
-    ohlc_data_arr = np.array(ohlc_data)
-    ohlc_data_arr2 = np.hstack(
-        [np.arange(ohlc_data_arr[:,0].size)[:,np.newaxis], ohlc_data_arr[:,1:]])
-    ndays = ohlc_data_arr2[:,0]  # array([0, 1, 2, ... n-2, n-1, n])
-
-    # Convert matplotlib date numbers to strings based on `fmt`
-    dates = mdates.num2date(ohlc_data_arr[:,0])
-    date_strings = []
-    for date in dates:
-        date_strings.append(date.strftime(fmt))
-
-    tmp=[]
-    for i in range(len(dates)) :
-        tmp.append(ohlc_data[i][1])
-    ax.bar(ndays[::freq], tmp, 0.35)
-
-    # Format x axis
-    ax.set_xticks(ndays[::freq])
-    ax.set_xticklabels(date_strings[::freq], rotation=20, ha='right')
-    ax.set_xlim(ndays.min(), ndays.max())
-
-def weekday_candlestick(ohlc_data, ax, fmt='%b %d', freq=7, **kwargs):
-
-    # Convert data to numpy array
-    ohlc_data_arr = np.array(ohlc_data)
-    ohlc_data_arr2 = np.hstack(
-        [np.arange(ohlc_data_arr[:,0].size)[:,np.newaxis], ohlc_data_arr[:,1:]])
-    ndays = ohlc_data_arr2[:,0]  # array([0, 1, 2, ... n-2, n-1, n])
-
-    # Convert matplotlib date numbers to strings based on `fmt`
-    dates = mdates.num2date(ohlc_data_arr[:,0])
-    date_strings = []
-    for date in dates:
-        date_strings.append('')
-
-    # Plot candlestick chart
-    mpf.candlestick_ohlc(ax, ohlc_data_arr2, **kwargs, colordown='b', colorup='r')
-    ax.set_xticks(ndays[::freq])
-    ax.set_xticklabels(date_strings[::freq], ha='right')
-    ax.set_xlim(ndays.min(), ndays.max())
-
-
-DATE = date.today()
-TODAY = DATE.strftime("%Y-%m-%d")
+import matplotlib.font_manager as fm
 
 ID = "chat_id=-235881804&"
-text_URL = "https://api.telegram.org/bot503225439:AAFVv3WnsASUlJ-SHbBjobaO9dArzN9pCbk/sendMessage?"
+URL = "https://api.telegram.org/bot503225439:AAFVv3WnsASUlJ-SHbBjobaO9dArzN9pCbk/sendMessage?"
 image_URL = "https://api.telegram.org/bot503225439:AAFVv3WnsASUlJ-SHbBjobaO9dArzN9pCbk/sendPhoto"
 ID_data = {'chat_id' : "-235881804"}
+
+picked_list = []
+picked_feature = []
+results = []
 
 code_df = pd.read_html('http://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13&marketType=kosdaqMkt', header=0)[0]
 # 종목코드가 6자리이기 때문에 6자리를 맞춰주기 위해 설정해줌
@@ -71,126 +22,146 @@ code_df = code_df[['회사명', '종목코드']]
 code_df = code_df.rename(columns={'회사명': 'name', '종목코드': 'code'})
 print(code_df.head())
 
-# 종목 이름을 입력하면 종목에 해당하는 코드를 불러와
-# 네이버 금융(http://finance.naver.com)에 넣어줌
-def get_url(item_name, code_df):
-    code = code_df.query("name=='{}'".format(item_name))['code'].to_string(index=False)
-    url = 'http://finance.naver.com/item/sise_day.nhn?code={code}'.format(code=code)
-    #print("요청 URL = {}".format(url))
-    return url
+def get_sum (code):
+    sum_URL = "http://finance.naver.com/item/sise.nhn?code=" + code
+    html = requests.get(sum_URL).text
+    soup = BeautifulSoup(html, 'html.parser')
+    sum_area = soup.find("table", {"summary": "시가총액 정보"})
+    sum_table = sum_area.find_all("td")
+    sum_element = sum_table[2]
+    SUM = sum_element.find("em").text
+    SUM = SUM.replace(",", "")
+    return int(SUM)
 
-df = pd.DataFrame()
-picked_df = pd.DataFrame(columns=["name","code","low","ins_date","del_date","picked"])
+def get_major_stakeholder (code):
+    major_URL = "https://companyinfo.stock.naver.com/v1/company/c1010001.aspx?cmp_cd=" + code
+    html = requests.get(major_URL).text
+    soup = BeautifulSoup(html, 'html.parser')
+    major_area = soup.find("table", {"id": "cTB13"})
+    major_table = major_area.find_all("td", {"class": "line num"})
 
-for name in code_df['name']:
+    SUM = 0
 
-    item_name = name
-    url = get_url(item_name, code_df)
-    pg_url = '{url}&page={page}'.format(url=url, page=1)
-    df = pd.read_html(pg_url, header=0)[0]
+    for major_element in major_table:
+        element = major_element.text
+        try:
+            element=element.replace(",", "")
+            element = int(element)
+        except:
+            break
+        SUM = SUM + element
 
-    # df.dropna()를 이용해 결측값 있는 행 제거
-    df = df.dropna()
+    return SUM
 
-    # 한글로 된 컬럼명을 영어로 바꿔줌
-    df = df.rename(columns= {'날짜': 'date', '종가': 'close', '전일비': 'diff', '시가': 'open', '고가': 'high', '저가': 'low', '거래량': 'volume'})
-    # 데이터의 타입을 int형으로 바꿔줌
-    df[['close', 'diff', 'open', 'high', 'low', 'volume']] = df[['close', 'diff', 'open', 'high', 'low', 'volume']].astype(int)
-    # 컬럼명 'date'의 타입을 date로 바꿔줌
-    df['date'] = pd.to_datetime(df['date'])
-    # 일자(date)를 기준으로 오름차순 정렬
-    df = df.sort_values(by=['date'], ascending=False)
-    # 상위 5개 데이터 확인
-    #print(df.head())
+for name in code_df['name'] :
 
+    if name.find("스팩") == -1 :
 
-    try:
-        Today = df.loc[1,'volume']
-        Close = df.loc[1,'close']
-        Low = df.loc[1,'low']
-        Yesterday = df.loc[2,'volume']
-        Diff = df.loc[1,'diff']
-    except:
-        continue
+        code = code_df.query("name=='{}'".format(name))['code'].to_string(index=False)
+        inst_URL = "http://finance.naver.com/item/frgn.nhn?code=" + code
+        html = requests.get(inst_URL).text
 
-    if Today > Yesterday*10 :
-        if not Yesterday == 0 :
-            if Diff > 0 :
-                if name.find("스팩") == -1:
+        soup = BeautifulSoup(html, 'html.parser')
 
-                    code = code_df.query("name=='{}'".format(name))['code'].to_string(index=False)
-                    sum_URL = "http://finance.naver.com/item/sise.nhn?code=" + code
+        inst_area = soup.find("table", {"summary": "외국인 기관 순매매 거래량에 관한표이며 날짜별로 정보를 제공합니다."})
+        inst_table = inst_area.find_all("td",{"width":"66"})
 
-                    html = requests.get(sum_URL).text
+        sum_URL = "http://finance.naver.com/item/sise.nhn?code=" + code
 
-                    soup = BeautifulSoup(html, 'html.parser')
+        html = requests.get(sum_URL).text
 
-                    sum_area = soup.find("table", {"summary": "시가총액 정보"})
-                    sum_table = sum_area.find_all("td")
-                    sum_element = sum_table[2]
-                    Sum = sum_element.find("em").text
-                    Sum = Sum.replace(",", "")
-                    Sum = Sum[:-5]
-                    Result = int(int(Sum) * int(Close) / 1000)
+        soup = BeautifulSoup(html, 'html.parser')
 
-                    Mul = int(Today / Yesterday)
-                    Result = str(Result)
-                    Low = str(Low)
-                    Mul = str(Mul)
+        sum_area = soup.find("table", {"summary": "시가총액 정보"})
+        sum_table = sum_area.find_all("td")
+        value_element = sum_table[0]
+        value = value_element.find("em").text
+        value = value.replace("\n", "")
+        value = value.replace("\t", "")
+        print(value)
+        sum_element = sum_table[2]
+        SUM = sum_element.find("em").text
+        SUM = SUM.replace(",","")
+        SUM = int(SUM) - get_major_stakeholder(code)
 
-                    text = "text=" + name + "%20" + Mul + "배" + "%20" + Low + "%20" + Result + "억원"
-                    print(name, Mul, Low, Result)
+        inst_SUM = 0
+        inst = []
+        i = 0
+        for table in inst_table :
+            try :
+                TMP = table.find("span").text
+            except :
+                continue
 
-                    #requests.get(text_URL+ID+text)
+            TMP = TMP.replace(",","")
+            inst_SUM = inst_SUM + int(TMP)
+            inst.append(inst_SUM)
+            i = i + 1
 
-                    picked_df.loc[len(picked_df)] = [name,code,Low,TODAY,'0000-00-00',1]
+        print(name, inst_SUM, SUM, i)
+        if i > 19 :
+            for i in range(3, 20, 4):
+                if inst[i] / SUM * 100 > (i / 4) + 1 :
+                    TEXT = "text=" + name + "%20" + str(inst_SUM) + "%20" + str(SUM)
+                    results.append(TEXT)
+                    for j in range(3, 20, 4):
+                        inst[j] = int(inst[j] / SUM * 100)
+                    picked_feature.append([name, value, inst[3], inst[7], inst[11], inst[15], inst[19]])
+                    break
 
-                    df['date'] = pd.to_datetime(df['date'])
-                    df['date'] = pd.to_datetime(df['date'], format="%Y-%m-%d")
-                    df['date'] = mdates.date2num(df['date'])
-                    df['open'] = pd.to_numeric(df['open'])
-                    df['high'] = pd.to_numeric(df['high'])
-                    df['low'] = pd.to_numeric(df['low'])
-                    df['close'] = pd.to_numeric(df['close'])
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
-                    df = df.sort_values(by='date')
+#TEXT = "text=" + "20일간 기관 매수세 입니다."
+#requests.get(URL+ID+TEXT)
 
-                    n_df = df[['date', 'open', 'high', 'low', 'close']].values
-                    nn_df = df[['date', 'volume']].values
+for feature in picked_feature :
+    '''
+    print(feature)
+    fig = plt.figure(facecolor='white')
+    ax = fig.add_subplot(1,1,1)
+    x = ['20','16','12','8','4']
+    negative_data = []
+    positive_data = []
+    for i in range(6, 1, -1):
 
-                    n_df = np.insert(n_df, 0, [n_df[0][0] - 1, np.NaN, np.NaN, np.NaN, np.NaN], axis=0)
-                    Last = int(n_df.shape[0])
-                    Last_day = n_df[Last - 1][0] + 1
-                    n_df = np.insert(n_df, Last, [Last_day, np.NaN, np.NaN, np.NaN, np.NaN], axis=0)
+        if feature[i] > 0:
+            positive_data.append(int(feature[i] / i * 100))
+            negative_data.append(0)
+        else:
+            positive_data.append(0)
+            negative_data.append(int(feature[i] / i * 100))
 
-                    nn_df = np.insert(nn_df, 0, [nn_df[0][0] - 1, 0], axis=0)
-                    Last = int(nn_df.shape[0])
-                    Last_day = nn_df[Last - 1][0] + 1
-                    nn_df = np.insert(nn_df, Last, [Last_day, 0], axis=0)
+    print(positive_data)
+    print(x)
+    rect1 = ax.bar(x, negative_data, width=0.5, color = 'b')
+    rect2 = ax.bar(x, positive_data, width=0.5, color = 'r')
 
-                    path = '/Library/Fonts/Arial Unicode.ttf'
-                    fontprop = fm.FontProperties(fname=path, size=16, weight='bold')
+    i = 6
+    for rect in rect1 :
+        height = rect.get_height()
+        if not height == 0 :
+            ax.text(rect.get_x() + rect.get_width() / 2., 1.05 * height,
+                    '%d%%' % feature[i],
+                    ha='center', va='bottom')
+        i = i - 1
 
-                    gs = gridspec.GridSpec(3, 3)
-                    gs.update(hspace=0.05)
+    i = 6
+    for rect in rect2 :
+        height = rect.get_height()
+        if not height == 0 :
+            ax.text(rect.get_x() + rect.get_width() / 2., 1.05 * height,
+                    '%d%%' % feature[i],
+                    ha='center', va='bottom')
+        i = i - 1
 
-                    ax = plt.subplot(gs[:-1, :])
-                    plt.title(item_name, fontproperties=fontprop)
-                    ax1 = plt.subplot(gs[-1, :])
+    plt.ylim(-200, 200)
 
-                    weekday_candlestick(n_df, ax, fmt='%m/%d', freq=1, width=0.1)
-                    weekday_barchart(nn_df, ax1, fmt='%m/%d', freq=1, width=0.1)
+    path = 'NanumGothic.ttf'
+    fontprop = fm.FontProperties(fname=path, size=16, weight='bold')
+    plt.title("{} {}억".format(feature[0], feature[1]), fontproperties=fontprop)
 
-                    ax.plot([0, Last], [n_df[Last - 1][3], n_df[Last - 1][3]], color='g', linestyle='--')
+    plt.savefig('temp.png')
+    FILE = {'photo': ('temp.png', open('temp.png', "rb"))}
+    requests.post(image_URL, data=ID_data, files=FILE) '''
 
-                    num_data = str(int(n_df[Last - 1][3]))
-                    ax.annotate(num_data, xy=(0, n_df[Last - 1][3]), xytext=(1, n_df[Last - 1][1]), weight='bold',
-                                arrowprops=dict(facecolor='black', shrink=0.05, width=2, headwidth=6))
-
-                    plt.savefig('temp.png')
-
-                    FILE = {'photo': ('temp.png', open('temp.png', "rb"))}
-                    #requests.post(image_URL, data=ID_data, files=FILE)
-
-with open('picked.csv','a') as f:
-    picked_df.to_csv(f, header=False, index=False)
+    print("{} {}억 {}% {}% {}% {}% {}%".format(feature[0], feature[1], feature[2], feature[3], feature[4], feature[5], feature[6]))
