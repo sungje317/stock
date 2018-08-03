@@ -1,6 +1,8 @@
 import pandas as pd
 from bs4 import BeautifulSoup
 import requests
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 
@@ -164,3 +166,6 @@ for feature in picked_feature :
     requests.post(image_URL, data=ID_data, files=FILE)
 
     print("{} {}억 {}% {}% {}% {}% {}%".format(feature[0], feature[1], feature[2], feature[3], feature[4], feature[5], feature[6]))
+
+TEXT = "text=" + "이상입니다."
+requests.get(URL+ID+TEXT)
