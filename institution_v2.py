@@ -6,13 +6,14 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 
-ID = "chat_id=-235881804&"
+ID = "chat_id=476315430&"
 URL = "https://api.telegram.org/bot503225439:AAFVv3WnsASUlJ-SHbBjobaO9dArzN9pCbk/sendMessage?"
 image_URL = "https://api.telegram.org/bot503225439:AAFVv3WnsASUlJ-SHbBjobaO9dArzN9pCbk/sendPhoto"
-ID_data = {'chat_id' : "-235881804"}
+ID_data = {'chat_id' : "476315430"}
 
 picked_list = []
 picked_feature = []
+picked_details = []
 results = []
 
 code_df = pd.read_html('http://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13&marketType=kosdaqMkt', header=0)[0]
@@ -57,6 +58,8 @@ def get_major_stakeholder (code):
 
 for name in code_df['name'] :
 
+#name = '퓨쳐스트림네트웍스'
+
     if name.find("스팩") == -1 :
 
         code = code_df.query("name=='{}'".format(name))['code'].to_string(index=False)
@@ -88,6 +91,7 @@ for name in code_df['name'] :
 
         inst_SUM = 0
         inst = []
+        inst_raw = []
         i = 0
         for table in inst_table :
             try :
@@ -98,17 +102,20 @@ for name in code_df['name'] :
             TMP = TMP.replace(",","")
             inst_SUM = inst_SUM + int(TMP)
             inst.append(inst_SUM)
+            inst_raw.append(int(TMP))
             i = i + 1
 
         print(name, inst_SUM, SUM, i)
+        print(inst)
+        print(inst_raw)
         if i > 19 :
             for i in range(3, 20, 4):
                 if inst[i] / SUM * 100 > (i / 5) + 2 :
-                    TEXT = "text=" + name + "%20" + str(inst_SUM) + "%20" + str(SUM)
-                    results.append(TEXT)
                     for j in range(3, 20, 4):
-                        inst[j] = int(inst[j] / SUM * 100)
-                    picked_feature.append([name, value, inst[3], inst[7], inst[11], inst[15], inst[19]])
+                        results.append(int(inst[j] / SUM * 100))
+                    print(results)
+                    picked_feature.append([name, value, results[0], results[1], results[2], results[3], results[4], inst_raw[0], inst_raw[1], inst_raw[2], inst_raw[3], SUM])
+                    results = []
                     break
 
 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
@@ -119,7 +126,15 @@ requests.get(URL+ID+TEXT)
 for feature in picked_feature :
     print(feature)
     fig = plt.figure(facecolor='white')
-    ax = fig.add_subplot(1,1,1)
+
+    ax1 = fig.add_subplot(2,1,1)
+
+    path = 'NanumGothic.ttf'
+    fontprop = fm.FontProperties(fname=path, size=16, weight='bold')
+    plt.title("{} {}억".format(feature[0], feature[1]), fontproperties=fontprop)
+
+    ax2 = fig.add_subplot(2,1,2)
+
     x = ['20','16','12','8','4']
     negative_data = []
     positive_data = []
@@ -134,14 +149,14 @@ for feature in picked_feature :
 
     print(positive_data)
     print(x)
-    rect1 = ax.bar(x, negative_data, width=0.5, color = 'b')
-    rect2 = ax.bar(x, positive_data, width=0.5, color = 'r')
+    rect1 = ax1.bar(x, negative_data, width=0.5, color = 'b')
+    rect2 = ax1.bar(x, positive_data, width=0.5, color = 'r')
 
     i = 6
     for rect in rect1 :
         height = rect.get_height()
         if not height == 0 :
-            ax.text(rect.get_x() + rect.get_width() / 2., 1.05 * height,
+            ax1.text(rect.get_x() + rect.get_width() / 2., 1.05 * height,
                     '%d%%' % feature[i],
                     ha='center', va='bottom')
         i = i - 1
@@ -150,16 +165,29 @@ for feature in picked_feature :
     for rect in rect2 :
         height = rect.get_height()
         if not height == 0 :
-            ax.text(rect.get_x() + rect.get_width() / 2., 1.05 * height,
+            ax1.text(rect.get_x() + rect.get_width() / 2., 1.05 * height,
                     '%d%%' % feature[i],
                     ha='center', va='bottom')
         i = i - 1
 
-    plt.ylim(-200, 200)
+    ax1.set_ylim(-200, 200)
 
-    path = 'NanumGothic.ttf'
-    fontprop = fm.FontProperties(fname=path, size=16, weight='bold')
-    plt.title("{} {}억".format(feature[0], feature[1]), fontproperties=fontprop)
+    x = ['4', '3', '2', '1']
+    negative_data = []
+    positive_data = []
+    for i in range(10, 6, -1):
+
+        if feature[i] > 0:
+            positive_data.append(int(feature[i]))
+            negative_data.append(0)
+        else:
+            positive_data.append(0)
+            negative_data.append(int(feature[i]))
+
+    rect1 = ax2.bar(x, negative_data, width=0.5, color='b')
+    rect2 = ax2.bar(x, positive_data, width=0.5, color='r')
+
+    ax2.set_ylim(-(feature[11]/100), (feature[11]/100))
 
     plt.savefig('temp.png')
     FILE = {'photo': ('temp.png', open('temp.png', "rb"))}
