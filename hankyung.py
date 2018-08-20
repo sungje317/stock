@@ -4,13 +4,13 @@ from datetime import date
 import pandas as pd
 
 ID = "chat_id=-235881804&"
-send_URL = "https://api.telegram.org/bot503225439:AAFVv3WnsASUlJ-SHbBjobaO9dArzN9pCbk/sendMessage?"
+send_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendMessage?"
 
 URL = 'http://hkconsensus.hankyung.com/apps.analysis/analysis.list?skinType=business&'
 AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36"
 DATE = date.today()
 TODAY = DATE.strftime("%Y-%m-%d")
-#TODAY = '2018-06-29'
+#TODAY = '2018-07-06'
 
 URL = URL + "sdate=" + TODAY + "&edate=" + TODAY
 HEADER = {'user-agent':AGENT}
@@ -31,15 +31,25 @@ for i in range(1,6,1) :
         response.encoding = 'euc-kr'
         html = response.text
         soup = BeautifulSoup(html, 'html.parser')
+        t_list = soup.find_all("tr")
         table = soup.find_all("td", class_= "text_l")
     except :
         continue
 
-    for element in table :
-        content = element.find("a").text
-        parse = content.split("(")
-        parse = parse[1].split(")")
+    for table in t_list :
+        e_list = table.find_all("td")
         try :
+            element = e_list[1]
+            writer = e_list[4].text
+            company = e_list[5].text
+        except :
+            continue
+
+        content = element.find("a").text
+        text = element.find("strong").text
+        try :
+            parse = content.split("(")
+            parse = parse[1].split(")")
             code = parse[0]
             name = code_df.query("code=='{}'".format(code))['name'].to_string(index=False)
         except :
@@ -64,13 +74,16 @@ for i in range(1,6,1) :
                 value_int = int(value_int)
             except :
                 continue
-            if value_int < 3000 :
-                picked_list.append([name, code, value, content])
+            if value_int < 5000 :
+                picked_list.append([name, code, value, text, company, writer])
 
 TEXT = "text=" + TODAY + " 한경컨센서스 관련주식입니다."
 requests.get(send_URL+ID+TEXT)
 
 for picked in picked_list :
-    TEXT = "text=" + picked[0] + " "  + picked[2] + "억 " + picked[3]
+    TEXT = "text=" + picked[2] + "억 " + picked[3] + " " + picked[4] + " " + picked[5]
     requests.get(send_URL+ID+TEXT)
     print(picked)
+
+TEXT = "text=이상입니다."
+requests.get(send_URL+ID+TEXT)
