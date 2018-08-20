@@ -30,22 +30,21 @@ def get_list():
     return df
 
 NOW = datetime.datetime.now()
+LAST = NOW
 END = NOW + datetime.timedelta(hours = 8)
 
 while NOW < END :
     df = get_list()
-    NOW = datetime.datetime.now() - datetime.timedelta(minutes = 1)
+    NOW = datetime.datetime.now()
 
     for i in range(df.shape[0]) :
 
-        if df.loc[i, 'time'] > NOW :
+        if df.loc[i, 'time'] > LAST :
             if df.loc[i, 'title'].find('[특징주]') > -1 :
                 print(df.loc[i, 'title'])
                 TEXT = 'text=' + df.loc[i, 'title']
                 requests.get(send_URL+ID+TEXT)
                 TEXT = 'text=' + df.loc[i, 'contents']
                 requests.get(send_URL+ID+TEXT)
-
-    time.sleep(59)
-
-
+            LAST = NOW
+    time.sleep(3)

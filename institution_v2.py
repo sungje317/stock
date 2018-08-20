@@ -6,10 +6,10 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 
-ID = "chat_id=476315430&"
-URL = "https://api.telegram.org/bot503225439:AAFVv3WnsASUlJ-SHbBjobaO9dArzN9pCbk/sendMessage?"
-image_URL = "https://api.telegram.org/bot503225439:AAFVv3WnsASUlJ-SHbBjobaO9dArzN9pCbk/sendPhoto"
-ID_data = {'chat_id' : "476315430"}
+ID = "chat_id=-235881804&"
+URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendMessage?"
+image_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendPhoto"
+ID_data = {'chat_id' : "-235881804"}
 
 picked_list = []
 picked_feature = []
@@ -109,14 +109,23 @@ for name in code_df['name'] :
         print(inst)
         print(inst_raw)
         if i > 19 :
-            for i in range(3, 20, 4):
-                if inst[i] / SUM * 100 > (i / 5) + 2 :
-                    for j in range(3, 20, 4):
-                        results.append(int(inst[j] / SUM * 100))
-                    print(results)
-                    picked_feature.append([name, value, results[0], results[1], results[2], results[3], results[4], inst_raw[0], inst_raw[1], inst_raw[2], inst_raw[3], SUM])
-                    results = []
-                    break
+
+            if inst_raw[0] / SUM * 100 > 1 :
+                for j in range(3, 20, 4):
+                    results.append(int(inst[j] / SUM * 100))
+                print(results)
+                picked_feature.append([name, value, results[0], results[1], results[2], results[3], results[4], inst_raw[0], inst_raw[1], inst_raw[2], inst_raw[3], SUM])
+                results = []
+
+            else :
+                for i in range(3, 20, 4):
+                    if inst[i] / SUM * 100 > (i / 5) + 2 :
+                        for j in range(3, 20, 4):
+                            results.append(int(inst[j] / SUM * 100))
+                        print(results)
+                        picked_feature.append([name, value, results[0], results[1], results[2], results[3], results[4], inst_raw[0], inst_raw[1], inst_raw[2], inst_raw[3], SUM])
+                        results = []
+                        break
 
 print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
@@ -129,7 +138,7 @@ for feature in picked_feature :
 
     ax1 = fig.add_subplot(2,1,1)
 
-    path = 'NanumGothic.ttf'
+    path = '/home/ubuntu/stock/NanumGothic.ttf'
     fontprop = fm.FontProperties(fname=path, size=16, weight='bold')
     plt.title("{} {}억".format(feature[0], feature[1]), fontproperties=fontprop)
 
@@ -187,10 +196,10 @@ for feature in picked_feature :
     rect1 = ax2.bar(x, negative_data, width=0.5, color='b')
     rect2 = ax2.bar(x, positive_data, width=0.5, color='r')
 
-    ax2.set_ylim(-(feature[11]/100), (feature[11]/100))
+    ax2.set_ylim(-(feature[11]/50), (feature[11]/50))
 
-    plt.savefig('temp.png')
-    FILE = {'photo': ('temp.png', open('temp.png', "rb"))}
+    plt.savefig('/home/ubuntu/stock/temp.png')
+    FILE = {'photo': ('temp.png', open('/home/ubuntu/stock/temp.png', "rb"))}
     requests.post(image_URL, data=ID_data, files=FILE)
 
     print("{} {}억 {}% {}% {}% {}% {}%".format(feature[0], feature[1], feature[2], feature[3], feature[4], feature[5], feature[6]))

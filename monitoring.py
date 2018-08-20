@@ -5,11 +5,11 @@ from datetime import timedelta
 from datetime import datetime
 
 ID = "chat_id=-235881804&"
-URL = "https://api.telegram.org/bot503225439:AAFVv3WnsASUlJ-SHbBjobaO9dArzN9pCbk/sendMessage?"
+URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendMessage?"
 
 picked_list = pd.DataFrame(columns=["code","low","ins_date","del_date","picked"])
 
-picked_list = pd.read_csv("picked.csv", dtype={'code':object})
+picked_list = pd.read_csv("/home/ubuntu/stock/picked.csv", dtype={'code':object})
 
 def get_url(code):
     url = 'http://finance.naver.com/item/sise_day.nhn?code={code}'.format(code=code)
@@ -58,7 +58,7 @@ while datetime.now() < end_time :
                 DIFF = str(DIFF)
                 print(NAME, NOW, LOW, DIFF)
                 TEXT = "text=" + NAME + "%20" + "저가도달입니다." + "%20" + NOW + "%20" + LOW + "%20" + DIFF
-                requests.get(URL + ID + TEXT)
+                #requests.get(URL + ID + TEXT)
                 picked_list.loc[i,"picked"] = 0
                 picked_list.loc[i,"del_date"] = TODAY
-                picked_list.to_csv("picked.csv", encoding='utf-8', index=False)
+                picked_list.to_csv("/home/ubuntu/stock/picked.csv", encoding='utf-8', index=False)

@@ -1,6 +1,10 @@
+#!/home/ubuntu/miniconda3/bin/python3
+
 from bs4 import BeautifulSoup
 import requests
 from datetime import date
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.font_manager as fm
 import pandas as pd
 import numpy as np
@@ -58,8 +62,8 @@ DATE = date.today()
 TODAY = DATE.strftime("%Y-%m-%d")
 
 ID = "chat_id=-235881804&"
-text_URL = "https://api.telegram.org/bot503225439:AAFVv3WnsASUlJ-SHbBjobaO9dArzN9pCbk/sendMessage?"
-image_URL = "https://api.telegram.org/bot503225439:AAFVv3WnsASUlJ-SHbBjobaO9dArzN9pCbk/sendPhoto"
+text_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendMessage?"
+image_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendPhoto"
 ID_data = {'chat_id' : "-235881804"}
 
 code_df = pd.read_html('http://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13&marketType=kosdaqMkt', header=0)[0]
@@ -168,14 +172,14 @@ for name in code_df['name']:
                     Last_day = nn_df[Last - 1][0] + 1
                     nn_df = np.insert(nn_df, Last, [Last_day, 0], axis=0)
 
-                    path = '/Library/Fonts/Arial Unicode.ttf'
+                    path = '/home/ubuntu/stock/NanumGothic.ttf'
                     fontprop = fm.FontProperties(fname=path, size=16, weight='bold')
 
                     gs = gridspec.GridSpec(3, 3)
                     gs.update(hspace=0.05)
 
                     ax = plt.subplot(gs[:-1, :])
-                    plt.title(item_name, fontproperties=fontprop)
+                    plt.title(item_name + " " + Result + "억원", fontproperties=fontprop)
                     ax1 = plt.subplot(gs[-1, :])
 
                     weekday_candlestick(n_df, ax, fmt='%m/%d', freq=1, width=0.1)
@@ -187,10 +191,13 @@ for name in code_df['name']:
                     ax.annotate(num_data, xy=(0, n_df[Last - 1][3]), xytext=(1, n_df[Last - 1][1]), weight='bold',
                                 arrowprops=dict(facecolor='black', shrink=0.05, width=2, headwidth=6))
 
-                    plt.savefig('temp.png')
+                    plt.savefig('/home/ubuntu/stock/temp.png')
 
-                    FILE = {'photo': ('temp.png', open('temp.png', "rb"))}
+                    FILE = {'photo': ('temp.png', open('/home/ubuntu/stock/temp.png', "rb"))}
                     requests.post(image_URL, data=ID_data, files=FILE)
 
-with open('picked.csv','a') as f:
+with open('/home/ubuntu/stock/picked.csv','a') as f:
     picked_df.to_csv(f, header=False, index=False)
+
+text = "이상입니다."
+requests.get(text_URL+ID+text)

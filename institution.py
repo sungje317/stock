@@ -59,9 +59,10 @@ for name in code_df['name'] :
         print(name, inst_SUM, SUM)
 
         if inst_SUM * 20 > SUM :
-            TEXT = "text=" + name + "%20" + str(inst_SUM) + "%20" + str(SUM)
+            percent = int(inst_SUM / SUM * 100)
+            TEXT = "text=" + name + "%20" + str(inst_SUM) + "%20" + str(SUM) + "%20" + str(percent) + "%25"
             results.append(TEXT)
-            picked_list.append("{} {} {}".format(name, inst_SUM, SUM))
+            picked_list.append("{} {} {} {}%".format(name, inst_SUM, SUM, percent))
 
 
 

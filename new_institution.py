@@ -1,12 +1,15 @@
 import pandas as pd
 from bs4 import BeautifulSoup
 import requests
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 
+
 ID = "chat_id=-235881804&"
-URL = "https://api.telegram.org/bot503225439:AAFVv3WnsASUlJ-SHbBjobaO9dArzN9pCbk/sendMessage?"
-image_URL = "https://api.telegram.org/bot503225439:AAFVv3WnsASUlJ-SHbBjobaO9dArzN9pCbk/sendPhoto"
+URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendMessage?"
+image_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendPhoto"
 ID_data = {'chat_id' : "-235881804"}
 
 picked_list = []
@@ -127,12 +130,12 @@ for feature in picked_feature :
 
     plt.ylim(-200, 200)
 
-    path = 'NanumGothic.ttf'
+    path = '/home/ubuntu/stock/NanumGothic.ttf'
     fontprop = fm.FontProperties(fname=path, size=16, weight='bold')
     plt.title("{} {}억".format(feature[0], feature[1]), fontproperties=fontprop)
 
-    plt.savefig('temp.png')
-    FILE = {'photo': ('temp.png', open('temp.png', "rb"))}
+    plt.savefig('/home/ubuntu/stock/temp.png')
+    FILE = {'photo': ('temp.png', open('/home/ubuntu/stock/temp.png', "rb"))}
     requests.post(image_URL, data=ID_data, files=FILE)
 
     print("{} {}억 {}% {}% {}% {}% {}%".format(feature[0], feature[1], feature[2], feature[3], feature[4], feature[5], feature[6]))
