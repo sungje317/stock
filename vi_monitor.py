@@ -37,12 +37,13 @@ value = requests.post(SEARCH_URL, REQUEST, HEADER)
 #print(value.text)
 value = json.loads(value.text)
 
+end_time = datetime.datetime.now() + datetime.timedelta(hours=7)
+while datetime.datetime.now() < end_time :
+    for item in value['result']:
+        vi_activated = item['isu_abbrv']
+        print(vi_activated)
+        if vi_activated not in picked :
+            requests.get(SEND_URL + ID + "text=vi발동!!!!" + vi_activated)
+            picked.append(vi_activated)
 
-for item in value['result']:
-    vi_activated = item['isu_abbrv']
-    print(vi_activated)
-    if vi_activated not in picked :
-        requests.get(SEND_URL + ID + "text=vi발동!!!!" + vi_activated)
-        picked.append(vi_activated)
-
-time.sleep(1)
+    time.sleep(1)
