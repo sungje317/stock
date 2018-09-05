@@ -14,36 +14,34 @@ SEARCH_URL = "http://marketdata.krx.co.kr/contents/MKD/99/MKD99000001.jspx"
 ID = "chat_id=476315430&"
 SEND_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendMessage?"
 
-OTP = requests.get(OTP_URL,headers=HEADER)
-OTP = OTP.text
 print(TODAY)
 
-REQUEST = {
-    'mkt_tp_cd': 'ALL',
-    'vi_kind_cd': 'ALL',
-    'isu_cdnm': '전체',
-    'isu_cd': '',
-    'isu_nm': '',
-    'isu_srt_cd': '',
-    'fr_work_dt': TODAY,
-    'to_work_dt': TODAY,
-    'pagePath': '/contents/MKD/10/1002/10020408/MKD10020408.jsp',
-    'code': OTP,
-    'pageFirstCall': 'Y'
-}
-
-
-value = requests.post(SEARCH_URL, REQUEST, HEADER)
-#print(value.text)
-value = json.loads(value.text)
-
 end_time = datetime.datetime.now() + datetime.timedelta(hours=7)
+count = 0
 while datetime.datetime.now() < end_time :
+    print(count)
+    count = count + 1
+    OTP = requests.get(OTP_URL, headers=HEADER)
+    OTP = OTP.text
+    REQUEST = {
+        'mkt_tp_cd': 'ALL',
+        'vi_kind_cd': 'ALL',
+        'isu_cdnm': '전체',
+        'isu_cd': '',
+        'isu_nm': '',
+        'isu_srt_cd': '',
+        'fr_work_dt': TODAY,
+        'to_work_dt': TODAY,
+        'pagePath': '/contents/MKD/10/1002/10020408/MKD10020408.jsp',
+        'code': OTP,
+        'pageFirstCall': 'Y'
+    }
+    value = requests.post(SEARCH_URL, REQUEST, HEADER)
+    value = json.loads(value.text)
     for item in value['result']:
         vi_activated = item['isu_abbrv']
-        print(vi_activated)
         if vi_activated not in picked :
             requests.get(SEND_URL + ID + "text=vi발동!!!!" + vi_activated)
             picked.append(vi_activated)
-
+            print(vi_activated)
     time.sleep(1)
