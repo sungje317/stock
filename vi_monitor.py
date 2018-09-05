@@ -18,6 +18,7 @@ print(TODAY)
 
 end_time = datetime.datetime.now() + datetime.timedelta(hours=7)
 count = 0
+order = 0
 while datetime.datetime.now() < end_time :
     print(count)
     count = count + 1
@@ -40,8 +41,11 @@ while datetime.datetime.now() < end_time :
     value = json.loads(value.text)
     for item in value['result']:
         vi_activated = item['isu_abbrv']
-        if vi_activated not in picked :
-            requests.get(SEND_URL + ID + "text=vi발동!!!!" + vi_activated)
+        vi_ord = int(item['isu_ord'])
+        if vi_ord > order :
+            order = vi_ord
+            if not count == 1 :
+                requests.get(SEND_URL + ID + "text=vi발동!!!!" + vi_activated)
             picked.append(vi_activated)
             print(vi_activated)
     time.sleep(1)
