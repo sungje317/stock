@@ -2,9 +2,8 @@ from bs4 import BeautifulSoup
 import requests
 from datetime import date
 import pandas as pd
-import emoji
 
-ID = "chat_id=476315430&"
+ID = "chat_id=-235881804&"
 send_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendMessage?"
 doc_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendDocument"
 
@@ -12,13 +11,12 @@ URL = 'http://hkconsensus.hankyung.com/apps.analysis/analysis.list?skinType=busi
 AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36"
 DATE = date.today()
 TODAY = DATE.strftime("%Y-%m-%d")
-TODAY = '2018-09-19'
+#TODAY = '2018-07-06'
 
 URL = URL + "sdate=" + TODAY + "&edate=" + TODAY
 HEADER = {'user-agent':AGENT}
 
 df = pd.DataFrame(columns=['name', 'code', 'content', 'value'])
-kims_df = pd.read_csv('kimPicks.csv')
 
 code_df = pd.read_html('http://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13&marketType=kosdaqMkt', header=0)[0]
 code_df.종목코드 = code_df.종목코드.map('{:06d}'.format)
@@ -86,33 +84,16 @@ for i in range(1,6,1) :
                 picked_list.append([name, code, value, text, company, writer, doc])
 
 TEXT = "text=" + TODAY + " 한경컨센서스 관련주식입니다."
-requests.get(send_URL+ID+TEXT)
-
-crown = emoji.emojize(':crown:')
+#requests.get(send_URL+ID+TEXT)
 
 for picked in picked_list :
     TEXT = "text=" + picked[2] + "억 " + picked[3] + " " + picked[4] + " " + picked[5]
-
-    kimsPick = False
-    writers = picked[5].replace(" ","")
-    writers = writers.split(",")
-    for writer in writers:
-        if writer == "김두현":
-            kimsPick = True
-    if kimsPick:
-        kims_df.loc[-1] = [picked[0], picked[1], TODAY]
-        kims_df.index = kims_df.index + 1
-        kims_df.sort_index(inplace=True)
-        kims_df.to_csv('kimPicks.csv', index=False)
-        code = int(picked[1])
-        count = len(kims_df.loc[kims_df["code"] == code])
-        for i in range(count):
-            TEXT = TEXT + crown
-
     requests.get(send_URL+ID+TEXT)
 
     post_data = {'chat_id': "-235881804", 'document': "http://hkconsensus.hankyung.com" + picked[6]}
     #requests.post(doc_URL, data=post_data, timeout=60)
+    print(post_data)
+    print(picked)
 
 TEXT = "text=이상입니다."
-requests.get(send_URL+ID+TEXT)
+#requests.get(send_URL+ID+TEXT)
