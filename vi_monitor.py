@@ -2,6 +2,7 @@ import time
 import requests
 import datetime
 import json
+import emoji
 
 OTP_URL = "http://marketdata.krx.co.kr/contents/COM/GenerateOTP.jspx?bld=MKD%2F10%2F1002%2F10020408%2Fmkd10020408&name=form&_" + str(int(time.time()*1000))
 AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36"
@@ -19,6 +20,10 @@ print(TODAY)
 end_time = datetime.datetime.now() + datetime.timedelta(hours=7)
 count = 0
 order = 0
+
+good = emoji.emojize(':grinning_squinting_face:')
+bad = emoji.emojize(':face_screaming_in_fear:')
+
 while datetime.datetime.now() < end_time :
     print(count)
     count = count + 1
@@ -40,12 +45,17 @@ while datetime.datetime.now() < end_time :
     value = requests.post(SEARCH_URL, REQUEST, HEADER)
     value = json.loads(value.text)
     for item in value['result']:
+        print(item)
         vi_activated = item['isu_abbrv']
+        vi_percent = float(item['vi_tg_prc_divrg_rt'])
         vi_ord = int(item['isu_ord'])
         if vi_ord > order :
             order = vi_ord
             if not count == 1 :
-                requests.get(SEND_URL + ID + "text=vi발동!!!!" + vi_activated)
+                if vi_percent > 0 :
+                    requests.get(SEND_URL + ID + "text=vi발동!!!!" + vi_activated + good)
+                else :
+                    requests.get(SEND_URL + ID + "text=vi발동!!!!" + vi_activated + bad)
             picked.append(vi_activated)
             print(vi_activated)
     time.sleep(1)
