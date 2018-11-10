@@ -11,13 +11,21 @@ AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHT
 HEADER = {'user-agent':AGENT}
 send_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendMessage?"
 
-code_df = pd.read_html('http://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13&marketType=kosdaqMkt', header=0)[0]
-# 종목코드가 6자리이기 때문에 6자리를 맞춰주기 위해 설정해줌
-code_df.종목코드 = code_df.종목코드.map('{:06d}'.format)
-# 우리가 필요한 것은 회사명과 종목코드이기 때문에 필요없는 column들은 제외해준다.
-code_df = code_df[['회사명', '종목코드']]
-# 한글로된 컬럼명을 영어로 바꿔준다.
-code_df = code_df.rename(columns={'회사명': 'name', '종목코드': 'code'})
+code_df_kosdaq = pd.read_html('http://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13&marketType=kosdaqMkt', header=0)[0]
+code_df_kosdaq.종목코드 = code_df_kosdaq.종목코드.map('{:06d}'.format)
+code_df_kosdaq = code_df_kosdaq[['회사명', '종목코드']]
+code_df_kosdaq = code_df_kosdaq.rename(columns={'회사명': 'name', '종목코드': 'code'})
+print(code_df_kosdaq.head())
+
+code_df_kospi = pd.read_html('http://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13&marketType=stockMkt', header=0)[0]
+code_df_kospi.종목코드 = code_df_kospi.종목코드.map('{:06d}'.format)
+code_df_kospi = code_df_kospi[['회사명', '종목코드']]
+code_df_kospi = code_df_kospi.rename(columns={'회사명': 'name', '종목코드': 'code'})
+print(code_df_kospi.head())
+
+code_df = code_df_kosdaq
+code_df = code_df.append(code_df_kospi)
+
 code_df['last'] = pd.Series(np.zeros(len(code_df['code'])))
 code_df = code_df.set_index("name")
 print(code_df.head())
