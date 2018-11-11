@@ -6,7 +6,7 @@ import numpy as np
 import datetime
 import time
 
-ID = "chat_id=476315430&"
+ID = "chat_id=-268850911&"
 AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36"
 HEADER = {'user-agent':AGENT}
 send_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendMessage?"
