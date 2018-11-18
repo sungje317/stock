@@ -6,10 +6,10 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 
-ID = "chat_id=-235881804&"
+ID = "chat_id=476315430&"
 URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendMessage?"
 image_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendPhoto"
-ID_data = {'chat_id' : "-235881804"}
+ID_data = {'chat_id' : "476315430"}
 
 picked_list = []
 picked_feature = []
@@ -24,6 +24,34 @@ code_df = code_df[['회사명', '종목코드']]
 # 한글로된 컬럼명을 영어로 바꿔준다.
 code_df = code_df.rename(columns={'회사명': 'name', '종목코드': 'code'})
 print(code_df.head())
+
+def get_percent(code):
+    url = 'http://finance.naver.com/item/sise_day.nhn?code={code}'.format(code=code)
+    pg_url = '{url}&page={page}'.format(url=url, page=1)
+    df = pd.read_html(pg_url, header=0)[0]
+
+    # df.dropna()를 이용해 결측값 있는 행 제거
+    df = df.dropna()
+
+    # 한글로 된 컬럼명을 영어로 바꿔줌
+    df = df.rename(
+        columns={'날짜': 'date', '종가': 'close', '전일비': 'diff', '시가': 'open', '고가': 'high', '저가': 'low', '거래량': 'volume'})
+    # 데이터의 타입을 int형으로 바꿔줌
+    df[['close', 'diff', 'open', 'high', 'low', 'volume']] = df[
+        ['close', 'diff', 'open', 'high', 'low', 'volume']].astype(int)
+    # 컬럼명 'date'의 타입을 date로 바꿔줌
+    df['date'] = pd.to_datetime(df['date'])
+    # 일자(date)를 기준으로 오름차순 정렬
+    df = df.sort_values(by=['date'], ascending=False)
+
+    try:
+        yes_last = int(df.loc[2, 'close'])
+        to_last = int(df.loc[1, 'close'])
+        return (to_last - yes_last) / yes_last
+    except:
+        return None
+
+    return
 
 def get_sum (code):
     sum_URL = "http://finance.naver.com/item/sise.nhn?code=" + code
@@ -89,6 +117,13 @@ for name in code_df['name'] :
         SUM = SUM.replace(",","")
         SUM = int(SUM) - get_major_stakeholder(code)
 
+        percent = get_percent(code)
+
+        if percent == None :
+            percent = "None"
+        else :
+            percent = str(percent)
+
         inst_SUM = 0
         inst = []
         inst_raw = []
@@ -114,7 +149,7 @@ for name in code_df['name'] :
                 for j in range(3, 20, 4):
                     results.append(int(inst[j] / SUM * 100))
                 print(results)
-                picked_feature.append([name, value, results[0], results[1], results[2], results[3], results[4], inst_raw[0], inst_raw[1], inst_raw[2], inst_raw[3], SUM])
+                picked_feature.append([name, value, results[0], results[1], results[2], results[3], results[4], inst_raw[0], inst_raw[1], inst_raw[2], inst_raw[3], SUM, percent])
                 results = []
 
             else :
@@ -123,7 +158,7 @@ for name in code_df['name'] :
                         for j in range(3, 20, 4):
                             results.append(int(inst[j] / SUM * 100))
                         print(results)
-                        picked_feature.append([name, value, results[0], results[1], results[2], results[3], results[4], inst_raw[0], inst_raw[1], inst_raw[2], inst_raw[3], SUM])
+                        picked_feature.append([name, value, results[0], results[1], results[2], results[3], results[4], inst_raw[0], inst_raw[1], inst_raw[2], inst_raw[3], SUM, percent])
                         results = []
                         break
 
@@ -140,7 +175,7 @@ for feature in picked_feature :
 
     path = '/home/ubuntu/stock/NanumGothic.ttf'
     fontprop = fm.FontProperties(fname=path, size=16, weight='bold')
-    plt.title("{} {}억".format(feature[0], feature[1]), fontproperties=fontprop)
+    plt.title("{} {}억 {}".format(feature[0], feature[1], feature[12]), fontproperties=fontprop)
 
     ax2 = fig.add_subplot(2,1,2)
 
