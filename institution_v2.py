@@ -47,7 +47,7 @@ def get_percent(code):
     try:
         yes_last = int(df.loc[2, 'close'])
         to_last = int(df.loc[1, 'close'])
-        return (to_last - yes_last) / yes_last
+        return int((to_last - yes_last) / yes_last * 100)
     except:
         return None
 
