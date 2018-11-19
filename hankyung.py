@@ -4,7 +4,7 @@ from datetime import date
 import pandas as pd
 import emoji
 
-ID = "chat_id=476315430&"
+ID = "chat_id=-235881804&"
 send_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendMessage?"
 doc_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendDocument"
 
@@ -12,13 +12,13 @@ URL = 'http://hkconsensus.hankyung.com/apps.analysis/analysis.list?skinType=busi
 AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36"
 DATE = date.today()
 TODAY = DATE.strftime("%Y-%m-%d")
-TODAY = '2018-09-19'
+#TODAY = '2018-09-19'
 
 URL = URL + "sdate=" + TODAY + "&edate=" + TODAY
 HEADER = {'user-agent':AGENT}
 
 df = pd.DataFrame(columns=['name', 'code', 'content', 'value'])
-kims_df = pd.read_csv('kimPicks.csv')
+kims_df = pd.read_csv('/home/ubuntu/stock/kimPicks.csv')
 
 code_df = pd.read_html('http://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13&marketType=kosdaqMkt', header=0)[0]
 code_df.종목코드 = code_df.종목코드.map('{:06d}'.format)
@@ -97,13 +97,14 @@ for picked in picked_list :
     writers = picked[5].replace(" ","")
     writers = writers.split(",")
     for writer in writers:
-        if writer == "김두현":
+        if writer == "김재윤":
             kimsPick = True
     if kimsPick:
         kims_df.loc[-1] = [picked[0], picked[1], TODAY]
         kims_df.index = kims_df.index + 1
         kims_df.sort_index(inplace=True)
-        kims_df.to_csv('kimPicks.csv', index=False)
+        kims_df.to_csv('/home/ubuntu/stock/kimPicks.csv', index=False)
+        kims_df = pd.read_csv('kimPicks.csv')
         code = int(picked[1])
         count = len(kims_df.loc[kims_df["code"] == code])
         for i in range(count):

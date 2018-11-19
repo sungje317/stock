@@ -12,7 +12,7 @@ TODAY = DATE.strftime("%Y%m%d")
 picked = []
 
 SEARCH_URL = "http://marketdata.krx.co.kr/contents/MKD/99/MKD99000001.jspx"
-ID = "chat_id=476315430&"
+ID = "chat_id=-235881804&"
 SEND_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendMessage?"
 
 print(TODAY)
