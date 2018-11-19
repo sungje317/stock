@@ -6,10 +6,10 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 
-ID = "chat_id=476315430&"
+ID = "chat_id=-235881804&"
 URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendMessage?"
 image_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendPhoto"
-ID_data = {'chat_id' : "476315430"}
+ID_data = {'chat_id' : "-235881804"}
 
 picked_list = []
 picked_feature = []
@@ -175,7 +175,7 @@ for feature in picked_feature :
 
     path = '/home/ubuntu/stock/NanumGothic.ttf'
     fontprop = fm.FontProperties(fname=path, size=16, weight='bold')
-    plt.title("{} {}억 {}".format(feature[0], feature[1], feature[12]), fontproperties=fontprop)
+    plt.title("{} {}억 {}%".format(feature[0], feature[1], feature[12]), fontproperties=fontprop)
 
     ax2 = fig.add_subplot(2,1,2)
 
