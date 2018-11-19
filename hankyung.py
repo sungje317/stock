@@ -104,7 +104,7 @@ for picked in picked_list :
         kims_df.index = kims_df.index + 1
         kims_df.sort_index(inplace=True)
         kims_df.to_csv('/home/ubuntu/stock/kimPicks.csv', index=False)
-        kims_df = pd.read_csv('kimPicks.csv')
+        kims_df = pd.read_csv('/home/ubuntu/stock/kimPicks.csv')
         code = int(picked[1])
         count = len(kims_df.loc[kims_df["code"] == code])
         for i in range(count):
@@ -113,7 +113,7 @@ for picked in picked_list :
     requests.get(send_URL+ID+TEXT)
 
     post_data = {'chat_id': "-235881804", 'document': "http://hkconsensus.hankyung.com" + picked[6]}
-    #requests.post(doc_URL, data=post_data, timeout=60)
+    requests.post(doc_URL, data=post_data, timeout=60)
 
 TEXT = "text=이상입니다."
 requests.get(send_URL+ID+TEXT)
