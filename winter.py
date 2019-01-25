@@ -222,7 +222,7 @@ for name in code_df['name']:
             continue
         print(df)
         twenty = df["close"].mean()
-        today = df[0]["close"]
+        today = df["close"][0]
         print(twenty, today)
         mental_rate = int(get_mental(df) * 100)
 
