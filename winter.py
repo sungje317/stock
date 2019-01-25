@@ -106,7 +106,7 @@ def get_backdata(url):
         end = int(end_url[index+5:]) + 1
 
     except:
-        return None
+        return None, True
 
     df = pd.DataFrame(columns=['date', 'close', 'diff', 'open', 'high', 'low', 'volume'])
     for page in range(1,3):
@@ -120,7 +120,7 @@ def get_backdata(url):
             df_temp = df_temp.sort_values(by=['date'], ascending=False)
             df = df.append(df_temp)
         except :
-            return None
+            return None, True
     df = df.reset_index(drop=True)
 
     df['date'] = pd.to_datetime(df['date'])
@@ -131,7 +131,7 @@ def get_backdata(url):
     df['low'] = pd.to_numeric(df['low'])
     df['close'] = pd.to_numeric(df['close'])
 
-    return df
+    return df, False
 
 def get_totalsum(name):
     code = code_df.query("name=='{}'".format(name))['code'].to_string(index=False)
@@ -217,8 +217,8 @@ for name in code_df['name']:
     if name.find("스팩") == -1 and name.find("투자") == -1 :
         print(name)
         url = get_url(name, code_df)
-        df = get_backdata(url)
-        if df == None:
+        df, empty = get_backdata(url)
+        if empty == True:
             continue
         twenty = df["close"].mean()
         today = df[0]["close"]
