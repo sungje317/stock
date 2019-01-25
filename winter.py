@@ -149,7 +149,7 @@ def get_totalsum(name):
     Sum = Sum[:-5]
     return int(Sum)
 
-def get_graph(df, item_name, mental_rate):
+def get_graph(df, item_name, mental_rate, twenty):
     df = df.sort_values(by='date')
     n_df = df[['date', 'open', 'high', 'low', 'close']].values
     nn_df = df[['date', 'volume']].values
@@ -179,11 +179,10 @@ def get_graph(df, item_name, mental_rate):
     weekday_candlestick(n_df, ax, fmt='%m/%d', freq=1, width=0.1)
     weekday_barchart(nn_df, ax1, fmt='%m/%d', freq=1, width=0.1)
 
-    ax.plot([0, Last], [n_df[Last - 1][3], n_df[Last - 1][3]], color='g', linestyle='--')
+    ax.plot([0, Last], [twenty, twenty], color='g', linestyle='--')
 
-    num_data = str(int(n_df[Last - 1][3]))
-    ax.annotate(num_data, xy=(0, n_df[Last - 1][3]), xytext=(1, n_df[Last - 1][1]), weight='bold',
-                arrowprops=dict(facecolor='black', shrink=0.05, width=2, headwidth=6))
+    #num_data = str(int(n_df[Last - 1][3]))
+    #ax.annotate(num_data, xy=(0, n_df[Last - 1][3]), xytext=(1, n_df[Last - 1][1]), weight='bold', arrowprops=dict(facecolor='black', shrink=0.05, width=2, headwidth=6))
 
     plt.savefig(TEMP+'temp.png')
 
@@ -227,7 +226,7 @@ for name in code_df['name']:
         mental_rate = int(get_mental(df) * 100)
 
         if mental_rate < -50 and twenty < today:
-            get_graph(df, name, mental_rate)
+            get_graph(df, name, mental_rate, twenty)
             FILE = {'photo': ('temp.png', open(TEMP+'temp.png', "rb"))}
             requests.get(text_URL + ID + "text=비닐하우스")
             requests.post(image_URL, data=ID_data, files=FILE)
@@ -243,13 +242,13 @@ for name in code_df['name']:
 
                 if first_tower > 0:
                     if mental_rate == -100 :
-                        get_graph(df, name, mental_rate)
+                        get_graph(df, name, mental_rate, twenty)
                         FILE = {'photo': ('temp.png', open(TEMP+'temp.png', "rb"))}
                         requests.get(text_URL + ID + "text=시베리아")
                         requests.post(image_URL, data=ID_data, files=FILE)
                         break
                     if mental_rate < -50 :
-                        get_graph(df, name, mental_rate)
+                        get_graph(df, name, mental_rate, twenty)
                         FILE = {'photo': ('temp.png', open(TEMP+'temp.png', "rb"))}
                         requests.get(text_URL + ID + "text=입동")
                         requests.post(image_URL, data=ID_data, files=FILE)
