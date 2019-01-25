@@ -67,6 +67,7 @@ image_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_Nrjj
 ID_data = {'chat_id' : "476315430"}
 AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36"
 HEADER = {'user-agent':AGENT}
+TEMP = "/home/ubuntu/stock/"
 
 code_df_kosdaq = pd.read_html('http://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13&marketType=kosdaqMkt', header=0)[0]
 code_df_kosdaq.종목코드 = code_df_kosdaq.종목코드.map('{:06d}'.format)
@@ -93,15 +94,19 @@ def get_url(item_name, code_df):
 
 def get_backdata(url):
 
-    pg_url = '{url}&page={page}'.format(url=url, page=1)
-    response = requests.get(pg_url, headers=HEADER)
-    html = response.text
-    soup = BeautifulSoup(html,'html.parser')
-    td = soup.find("td",{"class":"pgRR"})
-    end_url = td.find("a",href=True)
-    end_url = end_url["href"]
-    index = end_url.find("page")
-    end = int(end_url[index+5:]) + 1
+    try:
+        pg_url = '{url}&page={page}'.format(url=url, page=1)
+        response = requests.get(pg_url, headers=HEADER)
+        html = response.text
+        soup = BeautifulSoup(html,'html.parser')
+        td = soup.find("td",{"class":"pgRR"})
+        end_url = td.find("a",href=True)
+        end_url = end_url["href"]
+        index = end_url.find("page")
+        end = int(end_url[index+5:]) + 1
+
+    except:
+        return None
 
     df = pd.DataFrame(columns=['date', 'close', 'diff', 'open', 'high', 'low', 'volume'])
     for page in range(1,3):
@@ -115,7 +120,7 @@ def get_backdata(url):
             df_temp = df_temp.sort_values(by=['date'], ascending=False)
             df = df.append(df_temp)
         except :
-            break
+            return None
     df = df.reset_index(drop=True)
 
     df['date'] = pd.to_datetime(df['date'])
@@ -159,7 +164,7 @@ def get_graph(df, item_name, mental_rate):
     Last_day = nn_df[Last - 1][0] + 1
     nn_df = np.insert(nn_df, Last, [Last_day, 0], axis=0)
 
-    path = '/Users/parksang-yeon/MyStock/NanumGothic.ttf'
+    path = TEMP+'NanumGothic.ttf'
     fontprop = fm.FontProperties(fname=path, size=16, weight='bold')
 
     gs = gridspec.GridSpec(3, 3)
@@ -180,7 +185,7 @@ def get_graph(df, item_name, mental_rate):
     ax.annotate(num_data, xy=(0, n_df[Last - 1][3]), xytext=(1, n_df[Last - 1][1]), weight='bold',
                 arrowprops=dict(facecolor='black', shrink=0.05, width=2, headwidth=6))
 
-    plt.savefig('/Users/parksang-yeon/MyStock/temp.png')
+    plt.savefig(TEMP+'temp.png')
 
 def get_mental(df):
     down_count = 0
@@ -191,7 +196,6 @@ def get_mental(df):
 
     for i in range(5, -1, -1):
         diff = df.close[i] - df.close[i + 1]
-        print(diff)
         if diff > 0:
             up_count = up_count + 1
             up_sum = up_sum + diff
@@ -211,15 +215,19 @@ for name in code_df['name']:
 #name = "디딤"
 
     if name.find("스팩") == -1 and name.find("투자") == -1 :
+        print(name)
         url = get_url(name, code_df)
         df = get_backdata(url)
+        if df == None:
+            continue
         twenty = df["close"].mean()
-        today = df[19]["close"]
+        today = df[0]["close"]
+        print(twenty, today)
         mental_rate = int(get_mental(df) * 100)
 
         if mental_rate < -50 and twenty < today:
             get_graph(df, name, mental_rate)
-            FILE = {'photo': ('temp.png', open('/Users/parksang-yeon/MyStock/temp.png', "rb"))}
+            FILE = {'photo': ('temp.png', open(TEMP+'temp.png', "rb"))}
             requests.get(text_URL + ID + "text=비닐하우스")
             requests.post(image_URL, data=ID_data, files=FILE)
 
@@ -233,16 +241,15 @@ for name in code_df['name']:
                     break
 
                 if first_tower > 0:
-                    print(name, first_tower, Today, mental_rate)
                     if mental_rate == -100 :
                         get_graph(df, name, mental_rate)
-                        FILE = {'photo': ('temp.png', open('/Users/parksang-yeon/MyStock/temp.png', "rb"))}
+                        FILE = {'photo': ('temp.png', open(TEMP+'temp.png', "rb"))}
                         requests.get(text_URL + ID + "text=시베리아")
                         requests.post(image_URL, data=ID_data, files=FILE)
                         break
                     if mental_rate < -50 :
                         get_graph(df, name, mental_rate)
-                        FILE = {'photo': ('temp.png', open('/Users/parksang-yeon/MyStock/temp.png', "rb"))}
+                        FILE = {'photo': ('temp.png', open(TEMP+'temp.png', "rb"))}
                         requests.get(text_URL + ID + "text=입동")
                         requests.post(image_URL, data=ID_data, files=FILE)
                         break
