@@ -220,6 +220,7 @@ for name in code_df['name']:
         df, empty = get_backdata(url)
         if empty == True:
             continue
+        print(df)
         twenty = df["close"].mean()
         today = df[0]["close"]
         print(twenty, today)
