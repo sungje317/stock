@@ -13,6 +13,17 @@ import matplotlib.dates as mdates
 import mpl_finance as mpf
 import matplotlib.gridspec as gridspec
 
+DATE = date.today()
+TODAY = DATE.strftime("%Y-%m-%d")
+
+ID = "chat_id=-322150068&"
+text_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendMessage?"
+image_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendPhoto"
+ID_data = {'chat_id' : "-322150068"}
+AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36"
+HEADER = {'user-agent':AGENT}
+TEMP = "/home/ubuntu/stock/"
+
 def weekday_barchart(ohlc_data, ax, fmt='%b %d', freq=7, **kwargs):
 
     # Convert data to numpy array
@@ -57,18 +68,6 @@ def weekday_candlestick(ohlc_data, ax, fmt='%b %d', freq=7, **kwargs):
     ax.set_xticklabels(date_strings[::freq], ha='right')
     ax.set_xlim(ndays.min(), ndays.max())
 
-
-DATE = date.today()
-TODAY = DATE.strftime("%Y-%m-%d")
-
-ID = "chat_id=476315430&"
-text_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendMessage?"
-image_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendPhoto"
-ID_data = {'chat_id' : "476315430"}
-AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36"
-HEADER = {'user-agent':AGENT}
-TEMP = "/home/ubuntu/stock/"
-
 code_df_kosdaq = pd.read_html('http://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13&marketType=kosdaqMkt', header=0)[0]
 code_df_kosdaq.종목코드 = code_df_kosdaq.종목코드.map('{:06d}'.format)
 code_df_kosdaq = code_df_kosdaq[['회사명', '종목코드']]
@@ -83,6 +82,8 @@ print(code_df_kospi.head())
 
 code_df = code_df_kosdaq
 code_df = code_df.append(code_df_kospi)
+
+stock_code = pd.read_csv("stock_code.csv", dtype=str)
 
 # 종목 이름을 입력하면 종목에 해당하는 코드를 불러와
 # 네이버 금융(http://finance.naver.com)에 넣어줌
@@ -181,8 +182,8 @@ def get_graph(df, item_name, mental_rate, twenty):
 
     ax.plot([0, Last], [twenty, twenty], color='g', linestyle='--')
 
-    #num_data = str(int(n_df[Last - 1][3]))
-    #ax.annotate(num_data, xy=(0, n_df[Last - 1][3]), xytext=(1, n_df[Last - 1][1]), weight='bold', arrowprops=dict(facecolor='black', shrink=0.05, width=2, headwidth=6))
+    num_data = str(int(twenty))
+    ax.annotate(num_data, xy=(0, n_df[Last - 1][3]), xytext=(1, n_df[Last - 1][1]), weight='bold', arrowprops=dict(facecolor='black', shrink=0.05, width=2, headwidth=6))
 
     plt.savefig(TEMP+'temp.png')
 
@@ -209,12 +210,18 @@ def get_mental(df):
 
     return mental_rate
 
-for name in code_df['name']:
+for code in stock_code['StockCode']:
 
-#name = "디딤"
+    name = code_df.query("code=='{}'".format(code))['name'].to_string(index=False)
 
-    if name.find("스팩") == -1 and name.find("투자") == -1 :
+    if name.find("스팩") == -1 :
         print(name)
+
+        try:
+            total_sum = get_totalsum(name)
+        except:
+            continue
+
         url = get_url(name, code_df)
         df, empty = get_backdata(url)
         if empty == True:
