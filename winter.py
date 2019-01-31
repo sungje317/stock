@@ -83,7 +83,7 @@ print(code_df_kospi.head())
 code_df = code_df_kosdaq
 code_df = code_df.append(code_df_kospi)
 
-stock_code = pd.read_csv("stock_code.csv", dtype=str)
+stock_code = pd.read_csv(TEMP+"stock_code.csv", dtype=str)
 
 # 종목 이름을 입력하면 종목에 해당하는 코드를 불러와
 # 네이버 금융(http://finance.naver.com)에 넣어줌
