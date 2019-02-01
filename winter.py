@@ -232,7 +232,7 @@ for code in stock_code['StockCode']:
         print(twenty, today)
         mental_rate = int(get_mental(df) * 100)
 
-        if mental_rate < -50 and twenty < today:
+        if mental_rate < -50 and twenty < today and twenty * 1.05 > today:
             get_graph(df, name, mental_rate, twenty)
             FILE = {'photo': ('temp.png', open(TEMP+'temp.png', "rb"))}
             requests.get(text_URL + ID + "text=비닐하우스")
