@@ -185,7 +185,7 @@ def get_graph(df, item_name, mental_rate, twenty):
     ax.plot([0, Last], [twenty, twenty], color='g', linestyle='--')
 
     num_data = str(int(twenty))
-    ax.annotate(num_data, xy=(0, mental_rate), xytext=(1, mental_rate+1), weight='bold', arrowprops=dict(facecolor='black', shrink=0.05, width=2, headwidth=6))
+    ax.annotate(num_data, xy=(0, mental_rate), xytext=(1, mental_rate*1.05), weight='bold', arrowprops=dict(facecolor='black', shrink=0.05, width=2, headwidth=6))
 
     plt.savefig(TEMP+'temp.png')
 
