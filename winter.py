@@ -16,11 +16,11 @@ import matplotlib.gridspec as gridspec
 DATE = date.today()
 TODAY = DATE.strftime("%Y-%m-%d")
 
-#ID = "chat_id=-322150068&"
+ID = "chat_id=-322150068&"
 ID = "chat_id=476315430&"
 text_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendMessage?"
 image_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendPhoto"
-#ID_data = {'chat_id' : "-322150068"}
+ID_data = {'chat_id' : "-322150068"}
 ID_data = {'chat_id' : "476315430"}
 AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36"
 HEADER = {'user-agent':AGENT}
@@ -185,7 +185,7 @@ def get_graph(df, item_name, mental_rate, twenty):
     ax.plot([0, Last], [twenty, twenty], color='g', linestyle='--')
 
     num_data = str(int(twenty))
-    ax.annotate(num_data, xy=(0, n_df[Last - 1][3]), xytext=(1, n_df[Last - 1][1]), weight='bold', arrowprops=dict(facecolor='black', shrink=0.05, width=2, headwidth=6))
+    ax.annotate(num_data, xy=(0, mental_rate), xytext=(1, mental_rate+1), weight='bold', arrowprops=dict(facecolor='black', shrink=0.05, width=2, headwidth=6))
 
     plt.savefig(TEMP+'temp.png')
 
