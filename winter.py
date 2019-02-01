@@ -16,10 +16,12 @@ import matplotlib.gridspec as gridspec
 DATE = date.today()
 TODAY = DATE.strftime("%Y-%m-%d")
 
-ID = "chat_id=-322150068&"
+#ID = "chat_id=-322150068&"
+ID = "chat_id=476315430&"
 text_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendMessage?"
 image_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_NrjjpVl9pg/sendPhoto"
-ID_data = {'chat_id' : "-322150068"}
+#ID_data = {'chat_id' : "-322150068"}
+ID_data = {'chat_id' : "476315430"}
 AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36"
 HEADER = {'user-agent':AGENT}
 TEMP = "/home/ubuntu/stock/"
@@ -232,7 +234,7 @@ for code in stock_code['StockCode']:
         print(twenty, today)
         mental_rate = int(get_mental(df) * 100)
 
-        if mental_rate < -50 and twenty < today and twenty * 1.05 > today:
+        if mental_rate < -50 and twenty <= today and twenty * 1.05 > today:
             get_graph(df, name, mental_rate, twenty)
             FILE = {'photo': ('temp.png', open(TEMP+'temp.png', "rb"))}
             requests.get(text_URL + ID + "text=비닐하우스")
@@ -254,7 +256,7 @@ for code in stock_code['StockCode']:
                         requests.get(text_URL + ID + "text=시베리아")
                         requests.post(image_URL, data=ID_data, files=FILE)
                         break
-                    if mental_rate < -50 :
+                    if mental_rate < -50 and twenty > today:
                         get_graph(df, name, mental_rate, twenty)
                         FILE = {'photo': ('temp.png', open(TEMP+'temp.png', "rb"))}
                         requests.get(text_URL + ID + "text=입동")
