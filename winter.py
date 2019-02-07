@@ -269,13 +269,13 @@ for index in range(stock_code.shape[0]):
                     if mental_rate == -100 :
                         get_graph(df, name, mental_rate, twenty)
                         FILE = {'photo': ('temp.png', open(TEMP+'temp.png', "rb"))}
-                        requests.get(text_URL + ID + "text=시베리아")
+                        requests.get(text_URL + ID + "text="+name+" "+Class+" "+Subclass+" "+"시베리아")
                         requests.post(image_URL, data=ID_data, files=FILE)
                         break
                     if mental_rate < -50 and twenty > today:
                         get_graph(df, name, mental_rate, twenty)
                         FILE = {'photo': ('temp.png', open(TEMP+'temp.png', "rb"))}
-                        requests.get(text_URL + ID + "text=입동")
+                        requests.get(text_URL + ID + "text="+name+" "+Class+" "+Subclass+" "+"입동")
                         requests.post(image_URL, data=ID_data, files=FILE)
                         break
 
