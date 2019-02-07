@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import mpl_finance as mpf
 import matplotlib.gridspec as gridspec
+import json
 
 DATE = date.today()
 TODAY = DATE.strftime("%Y-%m-%d")
@@ -23,8 +24,17 @@ image_URL = "https://api.telegram.org/bot641542576:AAHNabxUsCq5nqRmADV2ebNt_Nrjj
 ID_data = {'chat_id' : "-322150068"}
 ID_data = {'chat_id' : "476315430"}
 AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36"
-HEADER = {'user-agent':AGENT}
+HEADER = {'user-agent':AGENT, 'apikey':'vSBA8hHLWw6Nm8ynJC4CbsOkcdIGjHia'}
 TEMP = "/home/ubuntu/stock/"
+APIURL = 'http://133.186.146.218:8000/class/data?'
+
+def get_class(Class, Subclass):
+    RealURL = APIURL + 'Class=' + Class + '&Subclass=' + Subclass
+    result = requests.get(RealURL, headers=HEADER)
+    result = result.text
+    result = json.loads(result)
+    result = result[0]
+    return result["Cname"], result["Sname"]
 
 def weekday_barchart(ohlc_data, ax, fmt='%b %d', freq=7, **kwargs):
 
@@ -212,7 +222,13 @@ def get_mental(df):
 
     return mental_rate
 
-for code in stock_code['StockCode']:
+for index in range(stock_code.shape[0]):
+
+    code = stock_code.loc[index]["StockCode"]
+    Class = stock_code.loc[index]["Class"]
+    Subclass = stock_code.loc[index]["Subclass"]
+
+    Class, Subclass = get_class(Class, Subclass)
 
     name = code_df.query("code=='{}'".format(code))['name'].to_string(index=False)
 
@@ -237,7 +253,7 @@ for code in stock_code['StockCode']:
         if mental_rate < -50 and twenty <= today and twenty * 1.05 > today:
             get_graph(df, name, mental_rate, twenty)
             FILE = {'photo': ('temp.png', open(TEMP+'temp.png', "rb"))}
-            requests.get(text_URL + ID + "text=비닐하우스")
+            requests.get(text_URL + ID + "text="+name+" "+Class+" "+Subclass+" "+"비닐하우스")
             requests.post(image_URL, data=ID_data, files=FILE)
 
         else :
