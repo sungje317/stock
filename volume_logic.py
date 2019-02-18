@@ -240,7 +240,7 @@ for index in range(stock_code.shape[0]):
         if empty == True:
             continue
         print(df)
-        yesterday = df["volume"][0]
+        yesterday = df["volume"][1]
         today = df["volume"][0]
         print(yesterday, today)
         mental_rate = int(get_mental(df) * 100)
