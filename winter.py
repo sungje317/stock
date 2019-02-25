@@ -3,6 +3,7 @@
 from bs4 import BeautifulSoup
 import requests
 from datetime import date
+from datetime import timedelta
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.font_manager as fm
@@ -13,6 +14,7 @@ import matplotlib.dates as mdates
 import mpl_finance as mpf
 import matplotlib.gridspec as gridspec
 import json
+import datetime
 
 DATE = date.today()
 TODAY = DATE.strftime("%Y-%m-%d")
@@ -26,7 +28,9 @@ ID_data = {'chat_id' : "476315430"}
 AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36"
 HEADER = {'user-agent':AGENT, 'apikey':'vSBA8hHLWw6Nm8ynJC4CbsOkcdIGjHia'}
 TEMP = "/home/ubuntu/stock/"
+TEMP = "/Users/parksang-yeon/stock/"
 APIURL = 'http://133.186.146.218:8000/class/data?'
+fontprop = fm.FontProperties(fname=TEMP+'BMDOHYEON_ttf.ttf', size=16, weight='bold')
 
 def get_class(Class, Subclass):
     RealURL = APIURL + 'Class=' + Class + '&Subclass=' + Subclass
@@ -36,7 +40,7 @@ def get_class(Class, Subclass):
     result = result[0]
     return result["Cname"], result["Sname"]
 
-def weekday_barchart(ohlc_data, ax, fmt='%b %d', freq=7, **kwargs):
+def weekday_barchart(ohlc_data, ax, freq=7, **kwargs):
 
     # Convert data to numpy array
     ohlc_data_arr = np.array(ohlc_data)
@@ -45,22 +49,29 @@ def weekday_barchart(ohlc_data, ax, fmt='%b %d', freq=7, **kwargs):
     ndays = ohlc_data_arr2[:,0]  # array([0, 1, 2, ... n-2, n-1, n])
 
     # Convert matplotlib date numbers to strings based on `fmt`
-    dates = mdates.num2date(ohlc_data_arr[:,0])
+    dates = ohlc_data_arr[:,0]
     date_strings = []
+    index = 0
     for date in dates:
-        date_strings.append(date.strftime(fmt))
+        if index % 5 == 1 :
+            date_strings.append(date.strftime('%m/%d'))
+        else :
+            date_strings.append('')
+        index = index + 1
 
     tmp=[]
     for i in range(len(dates)) :
         tmp.append(ohlc_data[i][1])
-    ax.bar(ndays[::freq], tmp, 0.35)
+    ax.bar(ndays[::freq], tmp, 0.35, color="#705FA6")
 
     # Format x axis
     ax.set_xticks(ndays[::freq])
-    ax.set_xticklabels(date_strings[::freq], rotation=20, ha='right')
+    ax.set_xticklabels(date_strings[::freq], rotation=20, ha='right', fontproperties=fontprop, fontsize=10)
     ax.set_xlim(ndays.min(), ndays.max())
 
-def weekday_candlestick(ohlc_data, ax, fmt='%b %d', freq=7, **kwargs):
+    ax.set_yticklabels(ax.get_yticks()/1000, fontproperties=fontprop, fontsize=10)
+
+def weekday_candlestick(ohlc_data, ax, freq=7, **kwargs):
 
     # Convert data to numpy array
     ohlc_data_arr = np.array(ohlc_data)
@@ -69,16 +80,18 @@ def weekday_candlestick(ohlc_data, ax, fmt='%b %d', freq=7, **kwargs):
     ndays = ohlc_data_arr2[:,0]  # array([0, 1, 2, ... n-2, n-1, n])
 
     # Convert matplotlib date numbers to strings based on `fmt`
-    dates = mdates.num2date(ohlc_data_arr[:,0])
+    dates = ohlc_data_arr[:,0]
     date_strings = []
     for date in dates:
         date_strings.append('')
 
     # Plot candlestick chart
-    mpf.candlestick_ohlc(ax, ohlc_data_arr2, **kwargs, colordown='b', colorup='r')
+    mpf.candlestick_ohlc(ax, ohlc_data_arr2, **kwargs, colordown='#2974AF', colorup='#C9273E')
     ax.set_xticks(ndays[::freq])
-    ax.set_xticklabels(date_strings[::freq], ha='right')
+    ax.set_xticklabels(date_strings[::freq], ha='right', fontproperties=fontprop)
     ax.set_xlim(ndays.min(), ndays.max())
+
+    ax.set_yticklabels(ax.get_yticks(), fontproperties=fontprop, fontsize=10)
 
 code_df_kosdaq = pd.read_html('http://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13&marketType=kosdaqMkt', header=0)[0]
 code_df_kosdaq.종목코드 = code_df_kosdaq.종목코드.map('{:06d}'.format)
@@ -99,8 +112,7 @@ stock_code = pd.read_csv(TEMP+"stock_code.csv", dtype=str)
 
 # 종목 이름을 입력하면 종목에 해당하는 코드를 불러와
 # 네이버 금융(http://finance.naver.com)에 넣어줌
-def get_url(item_name, code_df):
-    code = code_df.query("name=='{}'".format(item_name))['code'].to_string(index=False)
+def get_url(code, code_df):
     url = 'http://finance.naver.com/item/sise_day.nhn?code={code}'.format(code=code)
     #print("요청 URL = {}".format(url))
     return url
@@ -136,9 +148,7 @@ def get_backdata(url):
             return None, True
     df = df.reset_index(drop=True)
 
-    df['date'] = pd.to_datetime(df['date'])
-    df['date'] = pd.to_datetime(df['date'], format="%Y-%m-%d")
-    df['date'] = mdates.date2num(df['date'])
+    df['date'] = pd.to_datetime(df['date'], format="%m/%d")
     df['open'] = pd.to_numeric(df['open'])
     df['high'] = pd.to_numeric(df['high'])
     df['low'] = pd.to_numeric(df['low'])
@@ -146,8 +156,7 @@ def get_backdata(url):
 
     return df, False
 
-def get_totalsum(name):
-    code = code_df.query("name=='{}'".format(name))['code'].to_string(index=False)
+def get_totalsum(code):
     sum_URL = "http://finance.naver.com/item/sise.nhn?code=" + code
 
     html = requests.get(sum_URL).text
@@ -162,42 +171,43 @@ def get_totalsum(name):
     Sum = Sum[:-5]
     return int(Sum)
 
-def get_graph(df, item_name, mental_rate, twenty):
+def get_graph(df, item_name, mental_rate, twenty, code):
+
     df = df.sort_values(by='date')
     n_df = df[['date', 'open', 'high', 'low', 'close']].values
     nn_df = df[['date', 'volume']].values
 
-    n_df = np.insert(n_df, 0, [n_df[0][0] - 1, np.NaN, np.NaN, np.NaN, np.NaN], axis=0)
+    n_df = np.insert(n_df, 0, [n_df[0][0] - timedelta(days=1), np.NaN, np.NaN, np.NaN, np.NaN], axis=0)
     Last = int(n_df.shape[0])
-    Last_day = n_df[Last - 1][0] + 1
+    Last_day = n_df[Last - 1][0] + timedelta(days=1)
     n_df = np.insert(n_df, Last, [Last_day, np.NaN, np.NaN, np.NaN, np.NaN], axis=0)
 
-    nn_df = np.insert(nn_df, 0, [nn_df[0][0] - 1, 0], axis=0)
+    nn_df = np.insert(nn_df, 0, [nn_df[0][0] - timedelta(days=1), 0], axis=0)
     Last = int(nn_df.shape[0])
-    Last_day = nn_df[Last - 1][0] + 1
+    Last_day = nn_df[Last - 1][0] + timedelta(days=1)
     nn_df = np.insert(nn_df, Last, [Last_day, 0], axis=0)
-
-    path = TEMP+'NanumGothic.ttf'
-    fontprop = fm.FontProperties(fname=path, size=16, weight='bold')
 
     gs = gridspec.GridSpec(3, 3)
     gs.update(hspace=0.05)
+    plt.style.use(['seaborn-dark'])
 
     ax = plt.subplot(gs[:-1, :])
-    totalsum = get_totalsum(item_name)
+    ax.yaxis.grid(linestyle='-', linewidth=0.5)
+    totalsum = get_totalsum(code)
     totalsum = int(totalsum * df.loc[1,"close"] / 1000)
     plt.title(item_name + " " + str(totalsum) + "억원 " + "심리도 " + str(mental_rate), fontproperties=fontprop)
     ax1 = plt.subplot(gs[-1, :])
+    ax1.yaxis.grid(linestyle='-', linewidth=0.5)
 
-    weekday_candlestick(n_df, ax, fmt='%m/%d', freq=1, width=0.1)
-    weekday_barchart(nn_df, ax1, fmt='%m/%d', freq=1, width=0.1)
+    weekday_candlestick(n_df, ax, freq=1, width=0.1)
+    weekday_barchart(nn_df, ax1, freq=1, width=0.1)
 
     ax.plot([0, Last], [twenty, twenty], color='g', linestyle='--')
 
     num_data = str(int(twenty))
     ax.annotate(num_data, xy=(0, mental_rate), xytext=(1, mental_rate*1.1), weight='bold', arrowprops=dict(facecolor='black', shrink=0.05, width=2, headwidth=6))
 
-    plt.savefig(TEMP+'temp.png')
+    plt.savefig(TEMP+'temp.png', dpi=200)
 
 def get_mental(df):
     down_count = 0
@@ -225,33 +235,31 @@ def get_mental(df):
 for index in range(stock_code.shape[0]):
 
     code = stock_code.loc[index]["StockCode"]
+    name = stock_code.loc[index]["StockName"]
     Class = stock_code.loc[index]["Class"]
     Subclass = stock_code.loc[index]["Subclass"]
 
     Class, Subclass = get_class(Class, Subclass)
 
-    name = code_df.query("code=='{}'".format(code))['name'].to_string(index=False)
+    print(name)
 
     if name.find("스팩") == -1 :
-        print(name)
 
         try:
-            total_sum = get_totalsum(name)
+            total_sum = get_totalsum(code)
         except:
             continue
 
-        url = get_url(name, code_df)
+        url = get_url(code, code_df)
         df, empty = get_backdata(url)
         if empty == True:
             continue
-        print(df)
         twenty = df["close"].mean()
         today = df["close"][0]
-        print(twenty, today)
         mental_rate = int(get_mental(df) * 100)
 
         if mental_rate < -50 and twenty <= today and twenty * 1.05 > today:
-            get_graph(df, name, mental_rate, twenty)
+            get_graph(df, name, mental_rate, twenty, code)
             FILE = {'photo': ('temp.png', open(TEMP+'temp.png', "rb"))}
             requests.get(text_URL + ID + "text="+name+" "+Class+" "+Subclass+" "+"비닐하우스")
             requests.post(image_URL, data=ID_data, files=FILE)
@@ -267,13 +275,13 @@ for index in range(stock_code.shape[0]):
 
                 if first_tower > 0:
                     if mental_rate == -100 :
-                        get_graph(df, name, mental_rate, twenty)
+                        get_graph(df, name, mental_rate, twenty, code)
                         FILE = {'photo': ('temp.png', open(TEMP+'temp.png', "rb"))}
                         requests.get(text_URL + ID + "text="+name+" "+Class+" "+Subclass+" "+"시베리아")
                         requests.post(image_URL, data=ID_data, files=FILE)
                         break
                     if mental_rate < -50 and twenty > today:
-                        get_graph(df, name, mental_rate, twenty)
+                        get_graph(df, name, mental_rate, twenty, code)
                         FILE = {'photo': ('temp.png', open(TEMP+'temp.png', "rb"))}
                         requests.get(text_URL + ID + "text="+name+" "+Class+" "+Subclass+" "+"입동")
                         requests.post(image_URL, data=ID_data, files=FILE)
