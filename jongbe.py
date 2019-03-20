@@ -91,6 +91,8 @@ count = 0
 min = 0
 today = date.today().strftime("%Y%m%d")
 
+requests.get(text_URL + ID + "text=종베모니터링시작")
+
 while datetime.datetime.now() < end_time :
     print(count)
     count = count + 1
@@ -131,8 +133,10 @@ while datetime.datetime.now() < end_time :
                 continue
 
             if before * 10 < after :
-                times = str(int(after / before))
-                requests.get(text_URL + ID + "text="+ "15:" + minStr + " " + name + " " + price + " " + times + "배 " + diff + "% " + total_sum + "억")
+                mean = df.loc[:15, 'price'].mean()
+                if mean < price :
+                    times = str(int(after / before))
+                    requests.get(text_URL + ID + "text="+ "15:" + minStr + " " + name + " " + price + " " + times + "배 " + diff + "% " + total_sum + "억")
 
     min = min + 3
 
