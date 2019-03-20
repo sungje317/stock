@@ -134,7 +134,7 @@ while datetime.datetime.now() < end_time :
 
             if before * 10 < after :
                 mean = df.loc[:15, 'price'].mean()
-                if mean < price :
+                if mean < int(price) :
                     times = str(int(after / before))
                     requests.get(text_URL + ID + "text="+ "15:" + minStr + " " + name + " " + price + " " + times + "배 " + diff + "% " + total_sum + "억")
 
